@@ -2,8 +2,17 @@
 name: Inbest.ai continuous integration frontend
 
 permissions:
-  id-token: write
   contents: read
+  id-token: write
+
+env:
+  WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+  SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+  REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+  REMOTE_USERNAME: ${{ secrets.REMOTE_USERNAME }}
+  REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+  REMOTE_PRIVATE_KEY: ${{ secrets.REMOTE_PRIVATE_KEY }}
+  REMOTE_PASSPHRASE: ${{ secrets.REMOTE_PASSPHRASE }}
 
 on:
   push:
@@ -30,4 +39,30 @@ jobs:
 
       - name: Run prettier
         run: npx prettier --check .
-        
+
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/auth@v2'
+        with:
+          export_environment_variables: true
+          project_id: 'hivenote'
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Use gcloud CLI
+        run: 'gcloud info'
+
+      - name: publish
+        run: |
+          sh publish.sh
+
+  

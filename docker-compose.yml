@@ -1,0 +1,7 @@
+services:
+  hivenote-frontend:
+    image: europe-west4-docker.pkg.dev/hivenote/inbest-task/inbest-task-frontend:latest
+    container_name: inbest-task-frontend
+    hostname: inbest-task-frontend
+    ports:
+      - "80:80"
