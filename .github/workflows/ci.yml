@@ -50,12 +50,24 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v4
 
-      - name: Set up Cloud SDK
+      - id: auth
         uses: 'google-github-actions/auth@v2'
         with:
           project_id: 'hivenote'
+          token_format: "access_token"
+          create_credentials_file: true
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
+          access_token_lifetime: '100s'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2.1.0
+
+      - name: Set crdential_file
+        run: gcloud auth login --cred-file=${{steps.auth.outputs.credentials_file_path}}
+
+      - name: Run gcloud
+        run: gcloud compute instances list --zones us-east4-c
 
       - name: Use gcloud CLI
         run: 'gcloud info'
