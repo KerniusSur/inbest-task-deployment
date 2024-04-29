@@ -6,15 +6,13 @@ permissions:
   id-token: write
 
 env:
-  WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-  SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
   REMOTE_USERNAME: ${{ secrets.REMOTE_USERNAME }}
   REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
   REMOTE_PRIVATE_KEY: ${{ secrets.REMOTE_PRIVATE_KEY }}
   REMOTE_PASSPHRASE: ${{ secrets.REMOTE_PASSPHRASE }}
-  REGION: europe-west4
-  GAR_LOCATION: europe-west4-docker.pkg.dev/hivenote/inbest-task/inbest-task-frontend
+  REGION: ${{ secrets.REGION }}
+  GAR_LOCATION: ${{ secrets.GAR_LOCATION }}
   SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
 
 
@@ -59,14 +57,6 @@ jobs:
         with:
           credentials_json: "${{ secrets.SERVICE_ACCOUNT_KEY }}"
 
-        # with:
-        #   project_id: 'hivenote'
-        #   token_format: "access_token"
-        #   create_credentials_file: true
-        #   workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
-        #   service_account: ${{ env.SERVICE_ACCOUNT }}
-        #   access_token_lifetime: '3600s'
-
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2.1.0
 
@@ -85,10 +75,6 @@ jobs:
   
       - name: Push image
         run: docker push ${{ env.GAR_LOCATION }}
-
-      # - name: publish
-      #   run: |
-      #     sh publish.sh
 
       - uses: Burnett01/rsync-deployments@5.2
         name: Add start.sh script to remote
