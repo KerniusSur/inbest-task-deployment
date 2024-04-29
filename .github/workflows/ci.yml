@@ -14,6 +14,8 @@ env:
   REMOTE_PRIVATE_KEY: ${{ secrets.REMOTE_PRIVATE_KEY }}
   REMOTE_PASSPHRASE: ${{ secrets.REMOTE_PASSPHRASE }}
   REGION: europe-west4
+  GAR_LOCATION: europe-west4-docker.pkg.dev/hivenote/inbest-task/inbest-task-frontend
+  SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
 
 
 on:
@@ -55,12 +57,15 @@ jobs:
       - id: auth
         uses: 'google-github-actions/auth@v2'
         with:
-          project_id: 'hivenote'
-          token_format: "access_token"
-          create_credentials_file: true
-          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ env.SERVICE_ACCOUNT }}
-          access_token_lifetime: '3600s'
+          credentials_json: "${{ secrets.SERVICE_ACCOUNT_KEY }}"
+
+        # with:
+        #   project_id: 'hivenote'
+        #   token_format: "access_token"
+        #   create_credentials_file: true
+        #   workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+        #   service_account: ${{ env.SERVICE_ACCOUNT }}
+        #   access_token_lifetime: '3600s'
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2.1.0
@@ -78,9 +83,16 @@ jobs:
         run: |-
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
-      - name: publish
-        run: |
-          sh publish.sh
+      - name: Build image
+        run: docker build . --file DOCKERFILE_LOCATION --tag ${{ env.GAR_LOCATION }}
+        working-directory: WORKING_DIRECTORY
+  
+      - name: Push image
+        run: docker push ${{ env.GAR_LOCATION }}
+
+      # - name: publish
+      #   run: |
+      #     sh publish.sh
 
       - uses: Burnett01/rsync-deployments@5.2
         name: Add start.sh script to remote
